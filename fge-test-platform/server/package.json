@@ -4,10 +4,12 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node -r dotenv/config index.js dotenv_config_path=.env.production",
+    "start": "NODE_ENV=production node -r dotenv/config index.js dotenv_config_path=.env.production",
     "dev": "nodemon index.js",
     "seed": "node scripts/seedQuestions.js",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate": "npx sequelize-cli db:migrate",
+    "migrate:undo": "npx sequelize-cli db:migrate:undo:all",
     "render-build": "npm install && npm run build"
   },
   "keywords": [],
@@ -21,10 +23,15 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
-    "mysql2": "^3.15.2",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
+    "pg-native": "^3.1.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "sequelize": "^6.37.7"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
