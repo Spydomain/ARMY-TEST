@@ -24,15 +24,39 @@ console.log('🌍 Environment:', {
   RENDER: process.env.RENDER ? 'true' : 'false'
 });
 
+// Increase the connection timeout to 60 seconds
 const dbConfig = {
   database: process.env.DB_NAME,
   username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD || process.env.DB_PASS,
+  password: process.env.DB_PASS, // Using DB_PASS as per .env.production
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT || '3306', 10),
-  dialect: process.env.DB_DIALECT || 'mysql',
+  dialect: 'mysql',
   timezone: process.env.TZ || '+00:00',
   logging: (msg) => console.log(`[Sequelize] ${msg}`),
+  
+    // SSL and connection settings for Aiven MySQL
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false // Required for Aiven's self-signed certs
+    },
+    // Connection settings
+    connectTimeout: 60000, // 60 seconds connection timeout
+    decimalNumbers: true,
+    supportBigNumbers: true,
+    bigNumberStrings: true,
+    dateStrings: true,
+    typeCast: true,
+    // Enable keep-alive
+    keepAlive: true,
+    // Timezone settings
+    timezone: process.env.TZ || '+00:00',
+    // Debug settings
+    debug: process.env.NODE_ENV === 'development',
+    // Multiple statements (disabled for security)
+    multipleStatements: false
+  },
   
   // Connection pool settings
   pool: {
