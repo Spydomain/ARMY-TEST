@@ -13,7 +13,7 @@ console.log('🔌 Database connection details:', {
   node_env: process.env.NODE_ENV,
   dialect: process.env.DB_DIALECT || 'mysql',
   // Don't log the actual password
-  password: process.env.DB_PASSWORD ? '***' : 'not set'
+  password: process.env.DB_PASS ? '***' : 'not set'
 });
 
 // Log environment for debugging
@@ -21,7 +21,11 @@ console.log('🌍 Environment:', {
   NODE_ENV: process.env.NODE_ENV,
   DB_DIALECT: process.env.DB_DIALECT || 'mysql',
   DB_SSL: process.env.DB_SSL,
-  RENDER: process.env.RENDER ? 'true' : 'false'
+  RENDER: process.env.RENDER ? 'true' : 'false',
+  DB_HOST: process.env.DB_HOST ? 'set' : 'not set',
+  DB_USER: process.env.DB_USER ? 'set' : 'not set',
+  DB_PASS: process.env.DB_PASS ? 'set' : 'not set',
+  DB_NAME: process.env.DB_NAME ? 'set' : 'not set'
 });
 
 // Increase the connection timeout to 60 seconds
