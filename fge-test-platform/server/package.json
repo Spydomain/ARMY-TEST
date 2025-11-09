@@ -4,13 +4,14 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "NODE_ENV=production node -r dotenv/config index.js dotenv_config_path=.env.production",
-    "dev": "nodemon index.js",
+    "start": "node -r dotenv/config --trace-warnings index.js dotenv_config_path=.env.production",
+    "dev": "nodemon -r dotenv/config index.js dotenv_config_path=.env.development",
     "seed": "node scripts/seedQuestions.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "npx sequelize-cli db:migrate",
     "migrate:undo": "npx sequelize-cli db:migrate:undo:all",
-    "render-build": "npm install && npm run build"
+    "render-build": "npm install --legacy-peer-deps && npm run build",
+    "debug": "NODE_DEBUG=sequelize node -r dotenv/config index.js"
   },
   "keywords": [],
   "author": "",

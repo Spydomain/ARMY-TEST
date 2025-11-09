@@ -7,33 +7,39 @@ dotenv.config();
 const dbConfig = {
   database: process.env.DB_NAME,
   username: process.env.DB_USER,
-  password: process.env.DB_PASS,
+  password: process.env.DB_PASSWORD || process.env.DB_PASS, // Handle both DB_PASSWORD and DB_PASS
   host: process.env.DB_HOST,
   port: process.env.DB_PORT || 5432, // Default PostgreSQL port
   dialect: 'postgres',
   logging: process.env.NODE_ENV === 'development' ? console.log : false,
   pool: {
-    max: 5,
+    max: 10, // Increased from 5 to 10 for Render
     min: 0,
-    acquire: 60000, // Increased from 30000 to 60000
+    acquire: 60000,
     idle: 10000
   },
   define: {
     timestamps: true,
     freezeTableName: true,
-    underscored: true
+    underscored: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   },
   dialectOptions: {
-    ssl: {
+    ssl: process.env.NODE_ENV === 'production' ? {
       require: true,
-      rejectUnauthorized: false // For self-signed certificates
-    },
+      rejectUnauthorized: false
+    } : false,
     keepAlive: true,
-    statement_timeout: 60000
+    statement_timeout: 60000,
+    idle_in_transaction_session_timeout: 60000,
+    connectionTimeoutMillis: 10000,
+    query_timeout: 10000,
+    application_name: 'fge-backend'
   },
   retry: {
-    max: 5, // Increased from 3 to 5
-    timeout: 60000, // Increased from 30000 to 60000
+    max: 5,
+    timeout: 30000,
     match: [
       /SequelizeConnectionError/,
       /SequelizeConnectionRefusedError/,
@@ -41,8 +47,12 @@ const dbConfig = {
       /SequelizeHostNotReachableError/,
       /SequelizeInvalidConnectionError/,
       /SequelizeConnectionTimedOutError/
-    ]
-  }
+    ],
+    backoffBase: 1000, // Start with 1 second delay
+    backoffExponent: 1.5,
+    report: (message, obj) => console.warn('Retry attempt:', message, obj)
+  },
+  benchmark: process.env.NODE_ENV === 'development'
 };
 
 // Create Sequelize instance
