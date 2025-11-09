@@ -44,26 +44,19 @@ const upload = multer({
 const app = express();
 
 // CORS configuration
-const allowedOrigins = [
-  'https://fgetestplatform.netlify.app',
-  'http://localhost:5173', // For local development
-];
-
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-    return callback(new Error(msg), false);
-  },
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://army-test.onrender.com',
+    'https://fgetestplatform.netlify.app',
+    'https://*.netlify.app'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Content-Range', 'X-Total-Count'],
+  maxAge: 600 // Cache preflight request for 10 minutes
 };
 
 // Middleware
