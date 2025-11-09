@@ -44,29 +44,100 @@ const upload = multer({
 const app = express();
 
 // CORS configuration
-const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'https://army-test.onrender.com',
-    'https://fgetestplatform.netlify.app',
-    'https://*.netlify.app'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  exposedHeaders: ['Content-Range', 'X-Total-Count'],
-  maxAge: 600 // Cache preflight request for 10 minutes
-};
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'https://army-test.onrender.com',
+  'https://fgetestplatform.netlify.app',
+  'https://*.netlify.app'
+];
 
-// Middleware
-app.use(cors(corsOptions));
+// Enable CORS for all routes
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
+// Standard middleware
 app.use(express.json());
 app.use(passport.initialize());
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Test database connection and check tables
+app.get('/api/health', async (req, res) => {
+  try {
+    // Test database connection
+    await sequelize.authenticate();
+    
+    // Get all tables in the database
+    const [tables] = await sequelize.query(
+      "SHOW TABLES"
+    );
+    
+    // Get table structures
+    const tableInfo = {};
+    
+    for (const table of tables) {
+      const tableName = Object.values(table)[0];
+      try {
+        // Get table structure
+        const [columns] = await sequelize.query(
+          `DESCRIBE ${tableName}`
+        );
+        
+        // Get row count
+        const [countResult] = await sequelize.query(
+          `SELECT COUNT(*) as count FROM ${tableName}`
+        );
+        
+        tableInfo[tableName] = {
+          columns: columns.map(col => ({
+            field: col.Field,
+            type: col.Type,
+            null: col.Null,
+            key: col.Key,
+            default: col.Default,
+            extra: col.Extra
+          })),
+          rowCount: countResult[0].count
+        };
+      } catch (err) {
+        console.error(`Error getting info for table ${tableName}:`, err);
+        tableInfo[tableName] = { error: err.message };
+      }
+    }
+    
+    res.json({
+      status: 'ok',
+      database: {
+        connected: true,
+        databaseName: sequelize.config.database,
+        tables: tableInfo
+      }
+    });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Database connection failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
 
 // Log requests for debugging
 app.use((req, res, next) => {

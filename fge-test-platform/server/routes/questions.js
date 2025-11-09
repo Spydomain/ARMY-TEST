@@ -11,7 +11,19 @@ import {
 const router = express.Router();
 
 // Public routes
-router.get('/random/:category', getRandomQuestions);
+router.get('/random/:category', async (req, res, next) => {
+  try {
+    await getRandomQuestions(req, res, next);
+  } catch (error) {
+    console.error('Error in /random/:category route:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
 
 // Admin routes
 router.get('/', auth, adminAuth, getAllQuestions);

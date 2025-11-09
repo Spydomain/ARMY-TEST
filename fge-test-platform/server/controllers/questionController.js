@@ -14,6 +14,19 @@ export const getRandomQuestions = async (req, res) => {
     const { limit = 100, language = 'en' } = req.query;
 
     console.log(`[DEBUG] Request for category: ${category}, limit: ${limit}, language: ${language}`);
+    
+    // Test database connection first
+    try {
+      await sequelize.authenticate();
+      console.log('Database connection has been established successfully.');
+    } catch (dbError) {
+      console.error('Unable to connect to the database:', dbError);
+      return res.status(500).json({ 
+        success: false,
+        message: 'Database connection error',
+        error: process.env.NODE_ENV === 'development' ? dbError.message : undefined
+      });
+    }
 
     // Validate category
     const validCategories = ['IDENT1', 'IDENT2', 'IDENT3', 'IDENT4', 'IDENT5', 'IDENT6'];
