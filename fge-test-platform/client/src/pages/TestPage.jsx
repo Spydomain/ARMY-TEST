@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../lib/api.js';
+import api from '../config/api';
 import QuestionCard from '../components/QuestionCard.jsx';
 import Layout from '../components/Layout.jsx';
 

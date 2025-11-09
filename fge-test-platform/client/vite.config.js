@@ -31,16 +31,27 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: env.VITE_API_URL || 'http://localhost:5000',
+          target: 'https://army-test.onrender.com',
           changeOrigin: true,
+          secure: true,
+          rewrite: (path) => path.replace(/^\/api/, '')
         },
         '/uploads': {
-          target: env.VITE_API_URL || 'http://localhost:5000',
+          target: 'https://army-test.onrender.com',
           changeOrigin: true,
+          secure: true
         },
       },
+      cors: {
+        origin: ['https://fgetestplatform.netlify.app', 'http://localhost:5173'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true
+      },
       headers: {
-        'Content-Type': 'application/javascript'
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
       }
     }
   };
