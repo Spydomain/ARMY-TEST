@@ -6,12 +6,22 @@ dotenv.config();
 // Database connection configuration with enhanced logging
 console.log('🔌 Database connection details:', {
   host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 5432,
+  port: process.env.DB_PORT || 3306,
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
-  ssl: process.env.PGSSLMODE === 'require' ? 'required' : 'off',
+  ssl: process.env.DB_SSL === 'REQUIRED',
   node_env: process.env.NODE_ENV,
-  dialect: 'postgres'
+  dialect: process.env.DB_DIALECT || 'mysql',
+  // Don't log the actual password
+  password: process.env.DB_PASSWORD ? '***' : 'not set'
+});
+
+// Log environment for debugging
+console.log('🌍 Environment:', {
+  NODE_ENV: process.env.NODE_ENV,
+  DB_DIALECT: process.env.DB_DIALECT || 'mysql',
+  DB_SSL: process.env.DB_SSL,
+  RENDER: process.env.RENDER ? 'true' : 'false'
 });
 
 const dbConfig = {
@@ -19,8 +29,9 @@ const dbConfig = {
   username: process.env.DB_USER,
   password: process.env.DB_PASSWORD || process.env.DB_PASS,
   host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  dialect: 'postgres',
+  port: parseInt(process.env.DB_PORT || '3306', 10),
+  dialect: process.env.DB_DIALECT || 'mysql',
+  timezone: process.env.TZ || '+00:00',
   logging: (msg) => console.log(`[Sequelize] ${msg}`),
   
   // Connection pool settings
@@ -28,7 +39,9 @@ const dbConfig = {
     max: parseInt(process.env.DB_POOL_MAX || '10', 10),
     min: parseInt(process.env.DB_POOL_MIN || '0', 10),
     acquire: parseInt(process.env.DB_POOL_ACQUIRE || '60000', 10),
-    idle: parseInt(process.env.DB_POOL_IDLE || '10000', 10)
+    idle: parseInt(process.env.DB_POOL_IDLE || '10000', 10),
+    evict: 10000, // The maximum time, in milliseconds, that a connection can be idle before being released
+    handleDisconnects: true
   },
   
   // Model options
@@ -38,25 +51,30 @@ const dbConfig = {
     underscored: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-    charset: 'utf8mb4',
-    collate: 'utf8mb4_unicode_ci'
+    charset: process.env.DB_CHARSET || 'utf8mb4',
+    collate: process.env.DB_COLLATE || 'utf8mb4_unicode_ci',
+    engine: 'InnoDB'
   },
   
-  // PostgreSQL specific options
+  // MySQL specific options
   dialectOptions: {
-    ssl: process.env.PGSSLMODE === 'require' ? {
+    ssl: process.env.DB_SSL === 'REQUIRED' ? {
       require: true,
-      rejectUnauthorized: false // Required for self-signed certificates
+      rejectUnauthorized: false
     } : false,
-    keepAlive: true,
-    statement_timeout: 30000,
-    idle_in_transaction_session_timeout: 10000,
-    connectionTimeoutMillis: 10000,
-    query_timeout: 10000,
-    application_name: 'fge-backend',
-    options: `-c search_path=public`,
-    client_encoding: 'utf8',
-    timezone: 'UTC'
+    connectTimeout: 60000, // 60 seconds
+    decimalNumbers: true,
+    supportBigNumbers: process.env.DB_SUPPORT_BIG_NUMBERS === 'true',
+    bigNumberStrings: process.env.DB_BIG_NUMBER_STRINGS === 'true',
+    dateStrings: true,
+    typeCast: true,
+    timezone: process.env.DB_TIMEZONE || '+00:00',
+    // For MySQL 8+ with caching_sha2_password
+    authPlugins: {
+      mysql_clear_password: () => () => {
+        return Buffer.from((process.env.DB_PASSWORD || '') + '\0');
+      }
+    }
   },
   
   // Connection retry logic
@@ -117,23 +135,47 @@ const testConnection = async () => {
   
   try {
     const startTime = Date.now();
-    await sequelize.authenticate();
-    const endTime = Date.now();
     
+    // Test connection
+    await sequelize.authenticate();
+    
+    const endTime = Date.now();
     console.log(`✅ Database connection established successfully in ${endTime - startTime}ms`);
     
-    // Get database version
-    const [results] = await sequelize.query('SELECT version()');
-    console.log('📊 Database version:', results[0]?.version || 'Unknown');
-    
-    // Get active connections
+    // Get database information
     try {
-      const [connections] = await sequelize.query(
-        'SELECT count(*) as active_connections FROM pg_stat_activity;'
-      );
-      console.log(`🔗 Active database connections: ${connections[0]?.active_connections || 'Unknown'}`);
+      // Get database version
+      const versionQuery = {
+        mysql: 'SELECT VERSION() as version',
+        postgres: 'SELECT version() as version',
+        sqlite: 'SELECT sqlite_version() as version'
+      }[sequelize.getDialect()] || 'SELECT 1 as version';
+      
+      const [versionResults] = await sequelize.query(versionQuery);
+      console.log(`📊 ${sequelize.getDialect().toUpperCase()} Version:`, versionResults[0]?.version || 'Unknown');
+      
+      // Get current database info
+      const dbQuery = {
+        mysql: 'SELECT DATABASE() as name, USER() as user, @@hostname as host',
+        postgres: 'SELECT current_database() as name, current_user as user, inet_server_addr() as host',
+        sqlite: 'SELECT 1 as name, 1 as user, 1 as host'
+      }[sequelize.getDialect()] || 'SELECT 1 as name, 1 as user, 1 as host';
+      
+      const [dbInfo] = await sequelize.query(dbQuery);
+      console.log('💾 Database Info:', {
+        Name: dbInfo[0]?.name || 'Unknown',
+        User: dbInfo[0]?.user || 'Unknown',
+        Host: dbInfo[0]?.host || 'Unknown'
+      });
+      
+      // Get connection stats if available
+      if (sequelize.getDialect() === 'mysql') {
+        const [status] = await sequelize.query('SHOW STATUS LIKE "Threads_connected";');
+        console.log(`🔗 Threads connected: ${status[0]?.Value || 'Unknown'}`);
+      }
+      
     } catch (e) {
-      console.log('ℹ️ Could not fetch active connections:', e.message);
+      console.log('ℹ️ Could not fetch database details:', e.message);
     }
     
     return true;
