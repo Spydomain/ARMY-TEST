@@ -78,13 +78,43 @@ process.on('unhandledRejection', (reason, promise) => {
   shutdown('unhandledRejection');
 });
 
+// Function to run database initialization
+const initializeDatabase = async () => {
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🔄 Initializing database...');
+    try {
+      // Test database connection
+      await testConnection();
+      console.log('✅ Database connection successful');
+      
+      // Run migrations
+      console.log('🔄 Running database migrations...');
+      const { execSync } = await import('child_process');
+      execSync('npx sequelize-cli db:migrate', { stdio: 'inherit' });
+      console.log('✅ Database migrations completed');
+      
+      // Run seeders in production
+      console.log('🔄 Seeding database...');
+      execSync('NODE_ENV=production node --experimental-modules --es-module-specifier-resolution=node server/scripts/seedProduction.js', { stdio: 'inherit' });
+      console.log('✅ Database seeding completed');
+    } catch (error) {
+      console.error('❌ Database initialization failed:', error);
+      throw error;
+    }
+  } else {
+    // In development, just test the connection
+    await testConnection();
+    console.log('✅ Database connection successful');
+  }
+};
+
 // Test database connection and start the server
 const startServer = async () => {
   console.log(`\n🚀 Starting ${NODE_ENV} server...`);
   
   try {
-    // Test database connection
-    await testConnection();
+    // Initialize database (migrations and seeding in production)
+    await initializeDatabase();
     
     // Start the server
     server = app.listen(PORT, () => {

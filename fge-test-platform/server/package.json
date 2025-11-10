@@ -11,8 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "npx sequelize-cli db:migrate",
     "migrate:undo": "npx sequelize-cli db:migrate:undo:all",
-    "render-build": "npm install --legacy-peer-deps && npm run build && npm run migrate && npm run seed:prod",
-    "debug": "NODE_DEBUG=sequelize node -r dotenv/config index.js"
+    "init-db": "node -e \"const { exec } = require('child_process'); const run = (cmd) => new Promise((resolve, reject) => { console.log(`Running: ${cmd}`); exec(cmd, (error, stdout, stderr) => { if (error) { console.error(`Error: ${error.message}`); return reject(error); } if (stderr) { console.error(`stderr: ${stderr}`); } console.log(stdout); resolve(); }); }); (async () => { try { await run('npx sequelize-cli db:migrate'); console.log('Migrations completed successfully'); await run('NODE_ENV=production node --experimental-modules --es-module-specifier-resolution=node server/scripts/seedProduction.js'); console.log('Database seeding completed'); } catch (error) { console.error('Database initialization failed:', error); process.exit(1); } })();"
   },
   "keywords": [],
   "author": "",

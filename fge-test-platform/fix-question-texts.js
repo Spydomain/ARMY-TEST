@@ -6,10 +6,19 @@ const dbConfig = {
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
   user: process.env.DB_USER,
-  password: process.env.DB_PASS, // Changed from DB_PASSWORD to DB_PASS
+  password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
 };
+
+// Validate required environment variables
+const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASS', 'DB_NAME'];
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`❌ Error: Missing required environment variable: ${envVar}`);
+    process.exit(1);
+  }
+}
 
 // Question templates for different vehicle types
 const questionTemplates = {
@@ -99,8 +108,11 @@ async function fixQuestionTexts() {
        FROM Question 
        WHERE question_text = 'Question text missing' 
           OR question_text IS NULL
-          OR explanation IS NULL
+          OR question_text = ''
+          OR explanation IS NULL 
+          OR explanation = ''
           OR explanation = 'The correct answer is Option A.'
+          OR explanation LIKE 'Correct answer:%'
        ORDER BY id`
     );
 

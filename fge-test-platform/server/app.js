@@ -43,6 +43,10 @@ const upload = multer({
 
 const app = express();
 
+// Serve static files from uploads directory
+const uploadsPath = path.join(__dirname, 'uploads');
+app.use('/uploads', express.static(uploadsPath));
+
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:3000',
