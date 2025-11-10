@@ -179,25 +179,28 @@ export default function TestPage() {
     // no-op: history is shown on Home page only
 
     if (mounted) {
+      console.log('Fetching questions for category:', category);
       api
-      .get(`/questions/random/${category}`, { params: { limit: 10 } })
+        .get(`/questions/random/${category}`, { params: { limit: 10 } })
         .then((res) => {
-        if (!mounted) return;
+          if (!mounted) return;
 
-        // Log the full response for debugging
-        console.log('Full API response:', res);
+          // Log the full response for debugging
+          console.log('Full API response:', res);
 
-        // Handle API response
-        let questions = [];
-        if (res.data && res.data.success && Array.isArray(res.data.data)) {
-          questions = res.data.data;
-        } else if (Array.isArray(res.data)) {
-          questions = res.data;
-        } else if (res.data && Array.isArray(res.data.data)) {
-          questions = res.data.data;
-        } else if (res.data && res.data.data && Array.isArray(res.data.data.data)) {
-          questions = res.data.data.data;
-        } else if (res.data && res.data.data) {
+          // Handle API response
+          let questions = [];
+          
+          // Try different response structures
+          if (res.data && Array.isArray(res.data)) {
+            questions = res.data; // Direct array response
+          } else if (res.data && res.data.data && Array.isArray(res.data.data)) {
+            questions = res.data.data; // { data: [...] } response
+          } else if (res.data && res.data.success && Array.isArray(res.data.data)) {
+            questions = res.data.data; // { success: true, data: [...] } response
+          } else if (res.data && res.data.data && res.data.data.data && Array.isArray(res.data.data.data)) {
+            questions = res.data.data.data; // Nested data response
+          } else if (res.data && res.data.data) {
           // Handle case where data is a single question object
           questions = [res.data.data];
         } else if (res.data) {
