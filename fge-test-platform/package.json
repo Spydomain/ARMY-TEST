@@ -1,0 +1,22 @@
+{
+  "name": "army-quiz",
+  "version": "1.0.0",
+  "description": "Military Vehicle Identification Quiz",
+  "main": "server/index.js",
+  "scripts": {
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "build": "cd client && npm run build && cd ../server && npm install",
+    "start": "cd server && npm start",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
+    "render-postbuild": "npm run build"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "mysql2": "^3.15.3"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

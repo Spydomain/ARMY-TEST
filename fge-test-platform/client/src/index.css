@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@plugin "tailwindcss-animate";
+
+/* Use class-based dark mode (ignore OS preference) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Minimal base styles without custom variable utilities to ensure Tailwind v4 compatibility */
+html { color-scheme: light dark; }
+body {
+  @apply bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 antialiased;
+}
+
+::selection { @apply bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900; }
+
+/* Simple animation helper */
+.animate-in {
+  animation: animateIn 0.3s ease-in-out;
+}
+
+@keyframes animateIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Confetti fall used on results screen */
+@keyframes confetti-fall {
+  0% { transform: translateY(-10%) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+}
+
+.confetti-piece {
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  will-change: transform, opacity;
+}
