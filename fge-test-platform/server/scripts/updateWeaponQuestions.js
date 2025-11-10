@@ -8,8 +8,8 @@ async function updateWeaponQuestions() {
     // Update question text for IDENT4 (weapons) to use "weapon" instead of "vehicle"
     const result = await Question.update(
       {
-        questionText: sequelize.fn('REPLACE', sequelize.col('questionText'), 'military vehicle', 'military weapon'),
-        questionTextFr: sequelize.fn('REPLACE', sequelize.col('questionTextFr'), 'véhicule militaire', 'arme militaire')
+        question_text: sequelize.fn('REPLACE', sequelize.col('question_text'), 'military vehicle', 'military weapon'),
+        question_text_fr: sequelize.fn('REPLACE', sequelize.col('question_text_fr'), 'véhicule militaire', 'arme militaire')
       },
       { where: { category: 'IDENT4' } }
     );
