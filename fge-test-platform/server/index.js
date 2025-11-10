@@ -88,25 +88,19 @@ const initializeDatabase = async () => {
     console.log('✅ Database connection successful');
     
     if (process.env.NODE_ENV === 'production') {
-      // Run migrations in production
+      // Run migrations
       console.log('🔄 Running database migrations...');
       const { execSync } = await import('child_process');
+      const path = await import('path');
+      const { fileURLToPath } = await import('url');
+      const __dirname = path.dirname(fileURLToPath(import.meta.url));
       
       // Set up environment for migrations
       const env = {
         ...process.env,
+        NODE_ENV: 'production',
         NODE_CONFIG: JSON.stringify({
           development: {
-            username: process.env.DB_USER,
-            password: process.env.DB_PASS,
-            database: process.env.DB_NAME,
-            host: process.env.DB_HOST,
-            port: process.env.DB_PORT || 3306,
-            dialect: 'mysql',
-            ssl: process.env.DB_SSL === 'true',
-            logging: false
-          },
-          production: {
             username: process.env.DB_USER,
             password: process.env.DB_PASS,
             database: process.env.DB_NAME,
@@ -119,20 +113,33 @@ const initializeDatabase = async () => {
         })
       };
       
-      // Run migrations
-      execSync('npx sequelize-cli db:migrate', { 
+      // Get the path to the config file
+      const configPath = path.join(__dirname, 'config', 'database.js');
+      
+      // Run migrations with explicit config path
+      execSync(`npx sequelize-cli db:migrate --config ${configPath}`, { 
         stdio: 'inherit',
-        env
+        env,
+        cwd: __dirname
       });
       console.log('✅ Database migrations completed');
       
-      // Run seeders in production
-      console.log('🔄 Seeding database...');
-      execSync('NODE_ENV=production node --experimental-modules --es-module-specifier-resolution=node server/scripts/seedProduction.js', { 
-        stdio: 'inherit',
-        env
-      });
-      console.log('✅ Database seeding completed');
+      // Check if seed file exists before running
+      const seedPath = path.join(__dirname, 'scripts', 'seedProduction.js');
+      try {
+        await import('fs').then(fs => fs.promises.access(seedPath));
+        
+        // Run seeders in production if the file exists
+        console.log('🔄 Seeding database...');
+        execSync(`node ${seedPath}`, { 
+          stdio: 'inherit',
+          env: { ...env, NODE_ENV: 'production' },
+          cwd: __dirname
+        });
+        console.log('✅ Database seeding completed');
+      } catch (err) {
+        console.log('ℹ️  No seed file found, skipping database seeding');
+      }
     }
   } catch (error) {
     console.error('❌ Database initialization failed:', error);
