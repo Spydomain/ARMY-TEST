@@ -49,6 +49,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'https://army-test.onrender.com',
   'https://fgetestplatform.netlify.app',
+  'https://fgetestplatform.netlify.app',
   'https://*.netlify.app'
 ];
 

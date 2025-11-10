@@ -38,6 +38,13 @@ const dbConfig = {
   dialect: 'mysql',
   timezone: process.env.TZ || '+00:00',
   logging: (msg) => console.log(`[Sequelize] ${msg}`),
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: true,
+      ca: process.env.DB_CA_CERT
+    }
+  },
   
   // Connection pool settings
   pool: {
