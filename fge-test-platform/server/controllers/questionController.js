@@ -104,45 +104,25 @@ export const getRandomQuestions = async (req, res) => {
 
     // Format response based on language
     const formattedQuestions = questions.map((question, index) => {
-      console.log(`[DEBUG] Processing question ${index + 1}/${questions.length} for ${category}`);
-      
-      // Debug log the raw question data
-      console.log(`[DEBUG] Raw question data:`, JSON.stringify(question, null, 2));
-      
-      // Ensure correctAnswer is one of A, B, C, D
-      let correctAnswer = 'A'; // Default value
-      
-      try {
-        if (question.correctAnswer) {
-          correctAnswer = String(question.correctAnswer).toUpperCase().trim();
-          if (!['A', 'B', 'C', 'D'].includes(correctAnswer)) {
-            console.warn(`[WARN] Invalid correctAnswer '${correctAnswer}' for question ${question.id}, defaulting to 'A'`);
-            correctAnswer = 'A';
-          }
-        } else {
-          console.warn(`[WARN] Missing correctAnswer for question ${question.id}, defaulting to 'A'`);
-        }
-      } catch (formatError) {
-        console.error(`[ERROR] Error processing correctAnswer for question ${question.id}:`, formatError);
-        correctAnswer = 'A'; // Fallback to default
-      }
+      // Use the correct answer from the database
+      const correctAnswer = question._6 || 'A';
 
       return {
         id: question.id,
-        questionText: language === 'fr' && question.questionTextFr 
-          ? question.questionTextFr 
-          : question.questionText,
-        optionA: question.optionA || 'Option A',
-        optionB: question.optionB || 'Option B',
-        optionC: question.optionC || 'Option C',
-        optionD: question.optionD || 'Option D',
-        imageUrl: question.imageUrl ? `http://localhost:5000/uploads/${question.imageUrl}` : null,
+        questionText: language === 'fr' && question._1
+          ? question._1
+          : (question._0 || 'Question text missing'),
+        optionA: question._2 || 'Option A',
+        optionB: question._3 || 'Option B',
+        optionC: question._4 || 'Option C',
+        optionD: question._5 || 'Option D',
+        imageUrl: question._7 ? `https://army-test.onrender.com/uploads/${question._7}` : null,
         category: question.category || 'IDENT6',
         difficulty: question.difficulty || 'medium',
         correctAnswer: correctAnswer,
-        explanation: language === 'fr' && question.explanationFr 
-          ? question.explanationFr 
-          : (question.explanation || 'No explanation available'),
+        explanation: language === 'fr' && question._8
+          ? question._8
+          : (question._8 || 'No explanation available'),
       };
     });
 

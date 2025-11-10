@@ -21,34 +21,42 @@ const Question = sequelize.define('Question', {
   questionText: {
     type: DataTypes.TEXT,
     allowNull: false,
+    field: 'question_text'
   },
   questionTextFr: {
     type: DataTypes.TEXT,
     allowNull: true,
+    field: 'question_text_fr'
   },
   optionA: {
     type: DataTypes.STRING,
     allowNull: false,
+    field: 'option_a'
   },
   optionB: {
     type: DataTypes.STRING,
     allowNull: false,
+    field: 'option_b'
   },
   optionC: {
     type: DataTypes.STRING,
     allowNull: false,
+    field: 'option_c'
   },
   optionD: {
     type: DataTypes.STRING,
     allowNull: false,
+    field: 'option_d'
   },
   correctAnswer: {
     type: DataTypes.ENUM('A', 'B', 'C', 'D'),
     allowNull: false,
+    field: 'correct_answer'
   },
   imageUrl: {
     type: DataTypes.STRING,
     allowNull: true,
+    field: 'image_url',
     get() {
       const rawValue = this.getDataValue('imageUrl');
       if (!rawValue) return null;
@@ -68,6 +76,7 @@ const Question = sequelize.define('Question', {
   explanationFr: {
     type: DataTypes.TEXT,
     allowNull: true,
+    field: 'explanation_fr'
   },
 });
 
