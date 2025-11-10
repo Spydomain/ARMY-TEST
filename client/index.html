@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FGE Test Platform</title>
+    <script>
+      // Set theme before React mounts to avoid FOUC
+      (function() {
+        try {
+          const stored = localStorage.getItem('theme');
+          // Default to light if no stored preference
+          const isDark = stored ? stored === 'dark' : false;
+          const root = document.documentElement;
+          if (isDark) {
+            root.classList.add('dark');
+          } else {
+            root.classList.remove('dark');
+          }
+        } catch (e) { /* no-op */ }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
