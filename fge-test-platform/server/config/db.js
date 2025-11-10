@@ -220,8 +220,12 @@ const testConnection = async () => {
       
       // Get connection stats if available
       if (sequelize.getDialect() === 'mysql') {
-        const [status] = await sequelize.query('SHOW STATUS LIKE "Threads_connected";');
-        console.log(`🔗 Threads connected: ${status[0]?.Value || 'Unknown'}`);
+        try {
+          const [status] = await sequelize.query('SHOW STATUS LIKE \'Threads_connected\'');
+          console.log(`🔗 Threads connected: ${status[0]?.Value || 'Unknown'}`);
+        } catch (error) {
+          console.warn('⚠️ Could not fetch thread status:', error.message);
+        }
       }
       
     } catch (e) {
