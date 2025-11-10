@@ -80,31 +80,63 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Function to run database initialization
 const initializeDatabase = async () => {
-  if (process.env.NODE_ENV === 'production') {
-    console.log('🔄 Initializing database...');
-    try {
-      // Test database connection
-      await testConnection();
-      console.log('✅ Database connection successful');
-      
-      // Run migrations
+  console.log('🔄 Initializing database...');
+  
+  try {
+    // Test database connection
+    await testConnection();
+    console.log('✅ Database connection successful');
+    
+    if (process.env.NODE_ENV === 'production') {
+      // Run migrations in production
       console.log('🔄 Running database migrations...');
       const { execSync } = await import('child_process');
-      execSync('npx sequelize-cli db:migrate', { stdio: 'inherit' });
+      
+      // Set up environment for migrations
+      const env = {
+        ...process.env,
+        NODE_CONFIG: JSON.stringify({
+          development: {
+            username: process.env.DB_USER,
+            password: process.env.DB_PASS,
+            database: process.env.DB_NAME,
+            host: process.env.DB_HOST,
+            port: process.env.DB_PORT || 3306,
+            dialect: 'mysql',
+            ssl: process.env.DB_SSL === 'true',
+            logging: false
+          },
+          production: {
+            username: process.env.DB_USER,
+            password: process.env.DB_PASS,
+            database: process.env.DB_NAME,
+            host: process.env.DB_HOST,
+            port: process.env.DB_PORT || 3306,
+            dialect: 'mysql',
+            ssl: process.env.DB_SSL === 'true',
+            logging: false
+          }
+        })
+      };
+      
+      // Run migrations
+      execSync('npx sequelize-cli db:migrate', { 
+        stdio: 'inherit',
+        env
+      });
       console.log('✅ Database migrations completed');
       
       // Run seeders in production
       console.log('🔄 Seeding database...');
-      execSync('NODE_ENV=production node --experimental-modules --es-module-specifier-resolution=node server/scripts/seedProduction.js', { stdio: 'inherit' });
+      execSync('NODE_ENV=production node --experimental-modules --es-module-specifier-resolution=node server/scripts/seedProduction.js', { 
+        stdio: 'inherit',
+        env
+      });
       console.log('✅ Database seeding completed');
-    } catch (error) {
-      console.error('❌ Database initialization failed:', error);
-      throw error;
     }
-  } else {
-    // In development, just test the connection
-    await testConnection();
-    console.log('✅ Database connection successful');
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
+    throw error;
   }
 };
 
