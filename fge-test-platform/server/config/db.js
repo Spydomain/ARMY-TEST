@@ -38,12 +38,17 @@ const dbConfig = {
   dialect: 'mysql',
   timezone: process.env.TZ || '+00:00',
   logging: (msg) => console.log(`[Sequelize] ${msg}`),
+  define: {
+    timestamps: true,
+    underscored: true
+  },
   dialectOptions: {
     ssl: {
       require: true,
       rejectUnauthorized: true,
-      ca: process.env.DB_CA_CERT
-    }
+      ca: process.env.DB_CA_CERT?.replace(/\\n/g, '\n') // Ensure newlines are properly formatted
+    },
+    connectTimeout: 60000
   },
   
   // Connection pool settings
