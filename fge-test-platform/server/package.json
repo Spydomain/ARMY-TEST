@@ -6,11 +6,12 @@
   "scripts": {
     "start": "NODE_ENV=production node -r dotenv/config index.js dotenv_config_path=.env.production",
     "dev": "NODE_ENV=development nodemon -r dotenv/config index.js dotenv_config_path=.env.development",
-    "seed": "node scripts/seedQuestions.js",
+    "seed": "node --experimental-modules --es-module-specifier-resolution=node server/seeders/seedQuestions.js",
+    "seed:prod": "NODE_ENV=production node --experimental-modules --es-module-specifier-resolution=node server/scripts/seedProduction.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "npx sequelize-cli db:migrate",
     "migrate:undo": "npx sequelize-cli db:migrate:undo:all",
-    "render-build": "npm install --legacy-peer-deps && npm run build",
+    "render-build": "npm install --legacy-peer-deps && npm run build && npm run migrate && npm run seed:prod",
     "debug": "NODE_DEBUG=sequelize node -r dotenv/config index.js"
   },
   "keywords": [],
