@@ -180,9 +180,17 @@ export default function TestPage() {
 
     if (mounted) {
       console.log('Fetching questions for category:', category);
+      const apiUrl = `${import.meta.env.VITE_API_URL || 'https://army-test.onrender.com'}/api/questions/random/${category}?limit=10`;
+      console.log('API Request URL:', apiUrl);
+      
       api
-        .get(`/questions/random/${category}`, { params: { limit: 10 } })
+        .get(apiUrl, { 
+          params: { limit: 10 },
+          timeout: 10000 // 10 second timeout
+        })
         .then((res) => {
+          console.log('API Response Status:', res.status);
+          console.log('API Response Headers:', res.headers);
           if (!mounted) return;
 
           // Log the full response for debugging
@@ -196,17 +204,52 @@ export default function TestPage() {
             questions = res.data; // Direct array response
           } else if (res.data && res.data.data && Array.isArray(res.data.data)) {
             questions = res.data.data; // { data: [...] } response
-          } else if (res.data && res.data.success && Array.isArray(res.data.data)) {
-            questions = res.data.data; // { success: true, data: [...] } response
-          } else if (res.data && res.data.data && res.data.data.data && Array.isArray(res.data.data.data)) {
-            questions = res.data.data.data; // Nested data response
-          } else if (res.data && res.data.data) {
           // Handle case where data is a single question object
           questions = [res.data.data];
         } else if (res.data) {
           // Handle case where response is a single question
           questions = [res.data];
         }
+        
+        // Process questions to handle missing data
+        questions = questions.map(question => {
+          // If question text is missing, use the explanation to generate it
+          if ((!question.questionText || question.questionText === 'Question text missing') && question.explanation) {
+            const vehicleMatch = question.explanation.match(/Correct answer: ([^.]+)/);
+            if (vehicleMatch) {
+              const vehicle = vehicleMatch[1].trim();
+              question.questionText = `Identify this military vehicle: ${vehicle}`;
+              
+              // Generate options if they're placeholders
+              if (question.optionA === 'Option A') {
+                // Create options based on the correct answer
+                const options = [
+                  vehicle,
+                  'T-72',
+                  'BMP-2',
+                  'Mi-8/17'
+                ];
+                
+                // Shuffle options
+                for (let i = options.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [options[i], options[j]] = [options[j], options[i]];
+                }
+                
+                // Assign options
+                question.optionA = options[0];
+                question.optionB = options[1];
+                question.optionC = options[2];
+                question.optionD = options[3];
+                
+                // Set correct answer
+                const correctIndex = options.indexOf(vehicle);
+                question.correctAnswer = String.fromCharCode(65 + correctIndex); // A, B, C, or D
+              }
+            }
+          }
+          return question;
+        });
 
         // Ensure we have an array of questions
         if (!Array.isArray(questions)) {
@@ -243,9 +286,33 @@ export default function TestPage() {
         }
         })
         .catch((error) => {
+          console.error('Error fetching questions:', {
+            message: error.message,
+            code: error.code,
+            config: {
+              url: error.config?.url,
+              method: error.config?.method,
+              headers: error.config?.headers
+            },
+            response: {
+              status: error.response?.status,
+              statusText: error.response?.statusText,
+              data: error.response?.data
+            },
+            stack: error.stack
+          });
+          
           if (!mounted) return;
-          console.error('Error loading questions:', error);
-          if (error.response && error.response.status === 404) {
+          
+          let errorMessage = 'Failed to load questions. ';
+          if (error.code === 'ECONNABORTED') {
+            errorMessage += 'Request timed out. Please check your connection.';
+          } else if (error.response) {
+            // Server responded with an error status code
+            errorMessage += `Server responded with ${error.response.status}: ${error.response.statusText}`;
+          } else if (error.request) {
+            // Request was made but no response received
+            errorMessage += 'No response from server. Please check your connection.';
             setError(`No questions available for category: ${category}`);
           } else {
             setError('Failed to load questions');
