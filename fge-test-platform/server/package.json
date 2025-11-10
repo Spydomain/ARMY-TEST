@@ -4,14 +4,14 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "npx cross-env NODE_ENV=production node -r dotenv/config index.js dotenv_config_path=.env.production",
-    "dev": "npx cross-env NODE_ENV=development nodemon -r dotenv/config index.js dotenv_config_path=.env.development",
+    "start": "NODE_ENV=production node -r dotenv/config index.js dotenv_config_path=.env.production",
+    "dev": "NODE_ENV=development nodemon -r dotenv/config index.js dotenv_config_path=.env.development",
     "seed": "node scripts/seedQuestions.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "npx sequelize-cli db:migrate",
     "migrate:undo": "npx sequelize-cli db:migrate:undo:all",
     "render-build": "npm install --legacy-peer-deps && npm run build",
-    "debug": "npx cross-env NODE_DEBUG=sequelize node -r dotenv/config index.js"
+    "debug": "NODE_DEBUG=sequelize node -r dotenv/config index.js"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +20,6 @@
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
-    "cross-env": "^10.1.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
