@@ -161,8 +161,8 @@ export default function TestPage() {
             seen.add(q.id);
             return true;
           });
-          // Only restore if we have valid questions with images
-          if (uniq.length > 0 && uniq.every(q => q.imageUrl)) {
+          // Restore questions even without images
+          if (uniq.length > 0) {
             setQuestions(uniq);
             setIndex(Number(snapshot.index) || 0);
             setAnswers(snapshot.answers || {});
@@ -211,12 +211,9 @@ export default function TestPage() {
           questions = [];
         }
 
-        // Filter out questions without images
-        const questionsWithImages = questions.filter((q) => q && q.imageUrl);
-
-        // Deduplicate by id
+        // Deduplicate by id (don't filter out questions without images)
         const seen = new Set();
-        const uniq = questionsWithImages.filter((q) => {
+        const uniq = questions.filter((q) => {
           if (!q || !q.id) return false;
           if (seen.has(q.id)) return false;
           seen.add(q.id);
@@ -224,11 +221,16 @@ export default function TestPage() {
         });
 
         console.log('Processed questions:', uniq);
-        console.log('Questions without images filtered out:', questions.length - questionsWithImages.length);
+        
+        // Log questions without images for debugging
+        const questionsWithoutImages = uniq.filter(q => !q.imageUrl);
+        if (questionsWithoutImages.length > 0) {
+          console.log('Questions without images:', questionsWithoutImages.length);
+        }
 
         if (uniq.length === 0) {
-          console.error('No valid questions with images found after processing');
-          setError('No questions with images available for this category');
+          console.error('No valid questions found after processing');
+          setError('No questions available for this category');
         } else {
           console.log('Setting questions:', uniq.length);
           setQuestions(uniq);

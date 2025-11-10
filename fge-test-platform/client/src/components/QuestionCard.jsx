@@ -7,7 +7,9 @@ function QuestionCard({ question, lang = 'en', selected, onSelect, mode = 'mcq',
     console.log('QuestionCard - Image URL:', question?.imageUrl);
   }, [question]);
   // Use the question text from the API or fallback to a default
-  const qText = question.questionText ? question.questionText.replace(/: .*/, '') : "Identify this military vehicle";
+  const qText = question.questionText && question.questionText !== 'Question text missing' 
+    ? question.questionText 
+    : `Identify this ${question.explanation ? question.explanation.replace('Correct answer: ', '').replace('.', '') : 'military vehicle'}`;
   
   // Get all available options
   const options = [
@@ -37,7 +39,7 @@ function QuestionCard({ question, lang = 'en', selected, onSelect, mode = 'mcq',
       </div>
 
       {/* Image Display */}
-      {question.imageUrl && (
+      {question.imageUrl ? (
         <div className="mb-8 bg-gray-100 dark:bg-gray-700 p-4 rounded-lg flex flex-col items-center">
           <img
             src={question.imageUrl}
@@ -49,6 +51,16 @@ function QuestionCard({ question, lang = 'en', selected, onSelect, mode = 'mcq',
               e.target.style.display = 'none';
             }}
           />
+        </div>
+      ) : (
+        <div className="mb-8 bg-gray-100 dark:bg-gray-700 p-8 rounded-lg flex flex-col items-center justify-center h-64">
+          <div className="text-gray-500 dark:text-gray-400 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p>No image available</p>
+            <p className="text-sm mt-2">{question.explanation || 'Please select an answer below'}</p>
+          </div>
         </div>
       )}
       
