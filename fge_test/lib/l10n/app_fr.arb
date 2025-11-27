@@ -45,6 +45,7 @@
     "googleLoginNotAvailable": "La connexion Google n'est pas disponible sur cette plateforme.",
     "loginPrompt": "Connectez-vous pour suivre vos progrès et voir l'historique de vos tests.",
     "loginAsGuest": "Continuer en tant qu'invité",
-    "continueWithGoogle": "Continuer avec Google"
+    "continueWithGoogle": "Continuer avec Google",
+    "googleLoginFailed": "La connexion Google a échoué. Veuillez réessayer."
 
 }

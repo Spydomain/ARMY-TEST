@@ -7,6 +7,7 @@ import 'package:fge_test/pages/settings_page.dart';
 import 'package:fge_test/pages/test_history_page.dart';
 import 'package:fge_test/pages/write_test_page.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
@@ -17,6 +18,26 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  String? _displayName;
+  String? _email;
+  String? _photoUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _displayName = prefs.getString('displayName');
+      _email = prefs.getString('email');
+      _photoUrl = prefs.getString('photoUrl');
+    });
+  }
+
   Future<void> _logout(BuildContext context, AppLocalizations l) async {
     final navigator = Navigator.of(context);
     final result = await showDialog<bool>(
@@ -38,6 +59,7 @@ class _HomePageState extends State<HomePage> {
     );
 
     if (result == true) {
+      await _googleSignIn.signOut();
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isLoggedIn', false);
       if (mounted) {
@@ -115,11 +137,38 @@ class _HomePageState extends State<HomePage> {
               MaterialPageRoute(builder: (context) => const SettingsPage()),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context, l),
-          ),
+          if (_photoUrl != null && _photoUrl!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: CircleAvatar(
+                backgroundImage: NetworkImage(_photoUrl!),
+              ),
+            ),
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            UserAccountsDrawerHeader(
+              accountName: Text(_displayName ?? 'Guest'),
+              accountEmail: Text(_email ?? ''),
+              currentAccountPicture: CircleAvatar(
+                backgroundImage: _photoUrl != null && _photoUrl!.isNotEmpty
+                    ? NetworkImage(_photoUrl!)
+                    : null,
+                child: _photoUrl == null || _photoUrl!.isEmpty
+                    ? const Icon(Icons.person)
+                    : null,
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: Text(l.logout),
+              onTap: () => _logout(context, l),
+            ),
+          ],
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

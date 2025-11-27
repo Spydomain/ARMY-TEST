@@ -1,9 +1,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:fge_test/l10n/app_localizations.dart';
-import 'package:fge_test/providers/auth_provider.dart';
 import 'package:fge_test/providers/settings_provider.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -31,10 +32,17 @@ class SettingsPage extends StatelessWidget {
     );
 
     if (confirmed == true) {
+      final googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', false);
+      await prefs.remove('displayName');
+      await prefs.remove('email');
+      await prefs.remove('photoUrl');
+
       if (!context.mounted) return;
-      final navigator = Navigator.of(context);
-      await Provider.of<AuthProvider>(context, listen: false).logout();
-      navigator.pushNamedAndRemoveUntil('/login', (route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
     }
   }
 

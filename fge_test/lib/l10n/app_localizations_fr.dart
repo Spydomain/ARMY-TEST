@@ -154,4 +154,8 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get continueWithGoogle => 'Continuer avec Google';
+
+  @override
+  String get googleLoginFailed =>
+      'La connexion Google a échoué. Veuillez réessayer.';
 }

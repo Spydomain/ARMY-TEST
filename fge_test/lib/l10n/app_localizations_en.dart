@@ -152,4 +152,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get googleLoginFailed => 'Google login failed. Please try again.';
 }

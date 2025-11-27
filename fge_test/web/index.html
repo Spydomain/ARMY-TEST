@@ -14,13 +14,14 @@
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
-  <base href="$FLUTTER_BASE_HREF">
+  <base href="/">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
 
   <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="flutter_app">
@@ -31,8 +32,16 @@
 
   <title>flutter_app</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Google Sign-In Client ID -->
+  <meta name="google-signin-client_id" content="937377150396-65pk7mdes834monl8brfdagkiof3hag9.apps.googleusercontent.com">
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
+  <script>
+    window.flutterWebRenderer = "html";
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

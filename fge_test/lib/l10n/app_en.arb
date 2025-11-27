@@ -45,5 +45,7 @@
     "googleLoginNotAvailable": "Google login is not available on this platform.",
     "loginPrompt": "Sign in to track your progress and see your test history.",
     "loginAsGuest": "Continue as Guest",
-    "continueWithGoogle": "Continue with Google"
+    "continueWithGoogle": "Continue with Google",
+    "googleLoginFailed": "Google login failed. Please try again."
+
 }

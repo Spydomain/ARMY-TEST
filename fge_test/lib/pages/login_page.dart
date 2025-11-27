@@ -1,24 +1,75 @@
+import 'dart:developer';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fge_test/l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginPage extends StatelessWidget {
+import 'package:fge_test/widgets/google_sign_in_button.dart';
+
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: <String>[
+      'email',
+      'profile',
+    ],
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+      if (account != null) {
+        _handleSignInSuccess(account);
+      }
+    });
+    if (kIsWeb) {
+      _googleSignIn.signInSilently();
+    }
+  }
+
+  Future<void> _handleSignInSuccess(GoogleSignInAccount user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true);
+    await prefs.setString('displayName', user.displayName ?? '');
+    await prefs.setString('email', user.email);
+    await prefs.setString('photoUrl', user.photoUrl ?? '');
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed('/');
+  }
 
   Future<void> _loginAsGuest(BuildContext context) async {
     final navigator = Navigator.of(context);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', true);
+    await prefs.remove('displayName');
+    await prefs.remove('email');
+    await prefs.remove('photoUrl');
+    if (!context.mounted) return;
     navigator.pushReplacementNamed('/');
   }
 
-  void _showGoogleLoginNotAvailable(BuildContext context) {
+  Future<void> _loginWithGoogle(BuildContext context) async {
     final l = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l.googleLoginNotAvailable)),
-    );
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    try {
+      await _googleSignIn.signIn();
+    } catch (error) {
+      log('Error signing in with Google: $error');
+      if (!mounted) return;
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text(l.googleLoginFailed)),
+      );
+    }
   }
 
   @override
@@ -83,19 +134,8 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.g_mobiledata),
-                    onPressed: () => _showGoogleLoginNotAvailable(context),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.grey[500],
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    label: Text(l.continueWithGoogle, style: GoogleFonts.notoSans(fontSize: 16, fontWeight: FontWeight.w600)),
-                  ),
+                GoogleSignInButton(
+                  onPressed: () => _loginWithGoogle(context),
                 ),
               ],
             ),
