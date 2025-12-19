@@ -74,7 +74,7 @@ final List<Question> _allQuestions = [
     category: 'tanks',
     image: 'assets/images/T_80.png',
     title: {'en': 'Identify the tank in the image.', 'fr': 'Identifiez le char dans l\'image.'},
-    options: {'en': ['T-80', 'Leopard 2', 'M1 Abrams', 'Challenger 2'], 'fr': ['T-80', 'Leopard 2', 'M1 Abrams', 'Challenger 2']},
+    options: {'en': ['T-80', 'T-72', 'T-90', 'T-64'], 'fr': ['T-80', 'T-72', 'T-90', 'T-64']},
     correctAnswerIndex: 0,
     correctAnswer: {'en': 'T-80', 'fr': 'T-80'},
     description: {'en': 'The T-80 is a main battle tank that was designed and manufactured in the Soviet Union.', 'fr': 'Le T-80 est un char de combat principal conçu et fabriqué en Union soviétique.'},
